@@ -24,7 +24,7 @@ dat1E = dat1[0:E,]
 dat1F = dat1[E:,]
 
 # DEXJPUS, 60% in-sample for estimation, 40% out-of-sample for forecasts
-dat2 = pd.read_csv("DEXJPUS.csv")                                   
+dat2 = pd.read_csv("DEXJPUS.csv")
 dat2 = dat2.loc[dat2.DEXJPUS != "."].DEXJPUS.astype(float)
 dat2 = np.array(dat2)
 dat2_rtn = dat2[0:-1]
@@ -116,13 +116,30 @@ print("Parameters from glo_min for Simulated dataset: ", "\n"
       "niter = " , niter,"\n"
       "output = " , output,"\n")
 
-theta_in = [b, gamma_kbar, sigma_sim]
-theta_in
+## predict
+# switching probabilities
+g_m = s_p(kbar, m0)             # g.m
+sigma = sigma_sim               # sigma
+n_vol = 252                     # n
+theta_in = [b, gamma_kbar, sigma]
+smoothed_p = g_pi_t(m0, kbar, data, theta_in)  # P
+A = g_t(kbar, b, gamma_kbar)                   # A
 
-scaled = g_pi_t(m0, kbar, data, theta_in)
+def predict_vol(kbar, b, m0, gamma_kbar, sigma, data, h = None):
+    g_m = s_p(kbar, m0)
+    theta_in = [b, gamma_kbar, sigma]
+    smoothed_p = g_pi_t(m0, kbar, data, theta_in)
+    A = g_t(kbar, b, gamma_kbar)
 
-A = g_t(kbar, b, gamma_kbar)
+    if h is None:
+        vol = np.sqrt((sigma**2)*np.dot(smoothed_p, g_m**2))
+    else:
+        next_A = A
+        for i in range(h):
+            next_A = np.dot(next_A, next_A)
+        next_smoothed_p = np.dot(smoothed_p, next_A)
+        vol = np.sqrt((sigma**2)*np.dot(next_smoothed_p, g_m**2))
 
-g_m = s_p(kbar, m0)
+    return(vol)
 
-np.prod(scaled)
+predict_vol(kbar, b, m0, gamma_kbar, sigma, data)
