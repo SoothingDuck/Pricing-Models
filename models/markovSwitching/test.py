@@ -8,16 +8,18 @@ from  markov import simulatedata,  glo_min, loc_min, g_LLb_h, g_LL, _LL, g_pi_t,
 
 
 # Set kbar
-kbar = 4
+kbar = 3
 
 # Simulated data, 60% in-sample for estimation, 40% out-of-sample for forecasts.  See Section 4 re rationale for simulated data
 b = 6
 m0 = 1.6
 gamma_kbar = 0.8
-sig = 2/np.sqrt(252)    
+sig = 2/np.sqrt(252)
 T = 7087
-E = np.rint(0.6*T).astype(int)            
+E = np.rint(0.6*T).astype(int)
 dat1 = simulatedata(b,m0,gamma_kbar,sig,kbar,T)
+np.savetxt("simul_dat1.csv", dat1, delimiter=",")
+
 dat1E = dat1[0:E,]
 dat1F = dat1[E:,]
 
@@ -67,7 +69,7 @@ def tsdisplay(y, figsize = (16,9), title = "", color = ""):
     
     fig = plt.figure(figsize = figsize)
     # Plot time series
-    tmp_data.plot(ax = fig.add_subplot(311), title = "$Log\ returns\ time\ series:\ " + title + "$", legend = False, color=color, linewidth=0.5, alpha=0.75)
+    tmp_data.plot(ax = fig.add_subplot(311), title = "Log returns time series: " + title + "$", legend = False, color=color, linewidth=0.5, alpha=0.75)
     # Plot ACF:
     sm.graphics.tsa.plot_acf(tmp_data, lags = 20, zero = False, color=color, ax = fig.add_subplot(323))
     # Plot PACF:
@@ -113,3 +115,14 @@ print("Parameters from glo_min for Simulated dataset: ", "\n"
       'Likelihood = %.5f' % LL_sim,"\n"
       "niter = " , niter,"\n"
       "output = " , output,"\n")
+
+theta_in = [b, gamma_kbar, sigma_sim]
+theta_in
+
+scaled = g_pi_t(m0, kbar, data, theta_in)
+
+A = g_t(kbar, b, gamma_kbar)
+
+g_m = s_p(kbar, m0)
+
+np.prod(scaled)
