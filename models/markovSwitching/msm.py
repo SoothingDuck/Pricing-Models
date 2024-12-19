@@ -1,3 +1,5 @@
+import numpy as np
+import pandas as pd
 from markov import glo_min, g_pi_t, g_t, s_p, simulatedata
 
 ## Functions
@@ -61,7 +63,7 @@ def get_tickers_slickcharts(ndx):
 
 ## Maintenant
 # Set kbar
-kbar = 5
+kbar = 7
 
 b = 6
 m0 = 1.6
@@ -83,4 +85,16 @@ predict_vol(data, kbar, b, m0, gamma_kbar, sigma)*np.random.normal()
 # sur le vrai
 import yfinance as yf
 
-nasdaq100 = get_tickers_slickcharts("nasdaq100") 
+nasdaq100 = get_tickers_slickcharts("nasdaq100")
+
+result = []
+for ticker in list(nasdaq100.Symbol):
+    dat = yf.Ticker(ticker)
+    hist_dat = dat.history(period="2y", interval="1wk", auto_adjust=False, actions=False)
+    if hist_dat.shape[0] > 100:
+        print(ticker)
+        log_return = np.array(np.log(hist_dat["Adj Close"]).diff().dropna()).reshape(-1, 1)
+        kbar = 7
+        b, m0, gamma_kbar, sigma = fit_MSM(log_return, kbar)
+        vol = predict_vol(log_return, kbar, b, m0, gamma_kbar, sigma)
+        result.append((ticker, vol*np.sqrt(52)))
