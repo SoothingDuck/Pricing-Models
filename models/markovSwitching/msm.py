@@ -36,12 +36,12 @@ def predict_vol(data, kbar, b, m0, gamma_kbar, sigma, h = None):
 
 
 def get_tickers_slickcharts(ndx):
-    import requests 
+    import requests
     from bs4 import BeautifulSoup
 
-    url= f'https://www.slickcharts.com/{ndx}' 
-    headers= {'User-Agent': 'Mozilla/5.0'}
-    response = requests.get(url,headers=headers)
+    url = f'https://www.slickcharts.com/{ndx}'
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, features="lxml")
 
     table = soup.find('table')  # Find the table
