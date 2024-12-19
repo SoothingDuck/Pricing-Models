@@ -4,11 +4,11 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta, date
 import time
-from  markov import simulatedata,  glo_min, loc_min, g_LLb_h, g_LL, _LL, g_pi_t, _t, g_t, s_p, unpack 
+from  markov import simulatedata,  glo_min, loc_min, g_LLb_h, g_LL, _LL, g_pi_t, _t, g_t, s_p, unpack
 
 
 # Set kbar
-kbar = 3
+kbar = 5
 
 # Simulated data, 60% in-sample for estimation, 40% out-of-sample for forecasts.  See Section 4 re rationale for simulated data
 b = 6
@@ -142,4 +142,5 @@ def predict_vol(kbar, b, m0, gamma_kbar, sigma, data, h = None):
 
     return(vol)
 
-predict_vol(kbar, b, m0, gamma_kbar, sigma, data)
+
+predict_vol(kbar, b, m0, gamma_kbar, sigma_sim, data)
