@@ -85,10 +85,11 @@ predict_vol(data, kbar, b, m0, gamma_kbar, sigma)*np.random.normal()
 # sur le vrai
 import yfinance as yf
 
-nasdaq100 = get_tickers_slickcharts("nasdaq100")
+sp500 = get_tickers_slickcharts("sp500")
 
-result = []
-for ticker in list(nasdaq100.Symbol):
+# MSM
+result_MSM = []
+for ticker in list(sp500.Symbol) + ["QQQ", "SPY"]:
     dat = yf.Ticker(ticker)
     hist_dat = dat.history(period="2y", interval="1wk", auto_adjust=False, actions=False)
     if hist_dat.shape[0] > 100:
@@ -97,4 +98,29 @@ for ticker in list(nasdaq100.Symbol):
         kbar = 7
         b, m0, gamma_kbar, sigma = fit_MSM(log_return, kbar)
         vol = predict_vol(log_return, kbar, b, m0, gamma_kbar, sigma)
-        result.append((ticker, vol*np.sqrt(52)))
+        result_MSM.append((ticker, vol*np.sqrt(52), hist_dat.shape[0]))
+
+# Hurst
+from hurst import compute_Hc, random_walk
+
+result_hurst = []
+for ticker in list(sp500.Symbol) + ["QQQ", "SPY"]:
+    print(ticker)
+    dat = yf.Ticker(ticker)
+    hist_dat = dat.history(period="2y", interval="1wk", auto_adjust=False, actions=False)
+
+    if hist_dat.shape[0] > 100:
+        H, c, data = compute_Hc(
+            np.log(hist_dat["Adj Close"]),
+            kind="random_walk",
+            simplified=True
+        )
+        result_hurst.append((ticker, H, c))
+
+# Synth
+df_MSM = pd.DataFrame(result_MSM, columns=["Ticker", "Volatility", "NbWeek"]).set_index("Ticker")
+df_hurst = pd.DataFrame(result_hurst, columns=["Ticker", "Hurst", "c"]).set_index("Ticker")
+
+df_MSM.join(df_hurst).sort_values("Volatility", ascending=False).head(20)
+
+df_MSM.join(df_hurst).sort_values("Volatility", ascending=False).tail(20)
