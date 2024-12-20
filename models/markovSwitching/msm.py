@@ -96,12 +96,14 @@ for ticker in list(sp500.Symbol) + ["QQQ", "SPY"]:
         print(f"{ticker} week")
         # Week
         log_return_week = np.array(np.log(hist_dat_week["Adj Close"]).diff().dropna()).reshape(-1, 1)
-        kbar = 7
+        kbar = 8
         b, m0, gamma_kbar, sigma_week = fit_MSM(log_return_week, kbar)
         vol_week = predict_vol(log_return_week, kbar, b, m0, gamma_kbar, sigma_week)
-        result_MSM_week.append((ticker, vol_week*np.sqrt(52), hist_dat_week.shape[0]))
+        vol_next_week = predict_vol(log_return_week, kbar, b, m0, gamma_kbar, sigma_week, h = 1)
+        vol_next_2week = predict_vol(log_return_week, kbar, b, m0, gamma_kbar, sigma_week, h = 2)
+        result_MSM_week.append((ticker, vol_week*np.sqrt(52),vol_next_week*np.sqrt(52), vol_next_2week*np.sqrt(52), hist_dat_week.shape[0]))
 
-pd.DataFrame(result_MSM_week, columns=["Ticker", "VolWeek", "NbWeek"]). \
+pd.DataFrame(result_MSM_week, columns=["Ticker", "VolWeek", "VolNextWeek", "VolNext2Week", "NbWeek"]). \
     set_index("Ticker"). \
     to_csv("result_MSM_week.csv")
 
@@ -116,10 +118,18 @@ for ticker in list(sp500.Symbol) + ["QQQ", "SPY"]:
         log_return_day = np.array(np.log(hist_dat_day["Adj Close"]).diff().dropna()).reshape(-1, 1)
         kbar = 5
         b, m0, gamma_kbar, sigma_day = fit_MSM(log_return_day, kbar)
-        vol_day = predict_vol(log_return_day, kbar, b, m0, gamma_kbar, sigma_day, h = 5)
-        result_MSM_day.append((ticker, vol_day*np.sqrt(252), hist_dat_day.shape[0]))
+        vol_day = predict_vol(log_return_day, kbar, b, m0, gamma_kbar, sigma_day)
+        vol_day_next_5 = predict_vol(log_return_day, kbar, b, m0, gamma_kbar, sigma_day, h = 5)
+        vol_day_next_10 = predict_vol(log_return_day, kbar, b, m0, gamma_kbar, sigma_day, h = 10)
+        result_MSM_day.append((
+            ticker,
+            vol_day*np.sqrt(252),
+            vol_day_next_5*np.sqrt(252),
+            vol_day_next_10*np.sqrt(252),
+            hist_dat_day.shape[0]
+        ))
 
-pd.DataFrame(result_MSM_day, columns=["Ticker", "VolDay", "NbDay"]). \
+pd.DataFrame(result_MSM_day, columns=["Ticker", "VolDay", "VolDayNext5", "VolDayNext10", "NbDay"]). \
     set_index("Ticker"). \
     to_csv("result_MSM_day.csv")
 
@@ -144,8 +154,16 @@ pd.DataFrame(result_hurst, columns=["Ticker", "H", "c"]). \
     to_csv("result_hurst.csv")
 
 # Synth
-df_MSM_week = pd.read_csv("result_MSM_week.csv")
-df_MSM_day = pd.read_csv("result_MSM_day.csv")
-df_hurst = pd.read_csv("result_hurst.csv")
+df_MSM_week = pd.read_csv("result_MSM_week.csv").set_index("Ticker")
+df_MSM_day = pd.read_csv("result_MSM_day.csv").set_index("Ticker")
+df_hurst = pd.read_csv("result_hurst.csv").set_index("Ticker")
 
+df_all = df_MSM_week. \
+    join(df_MSM_day). \
+    join(df_hurst)
 
+df_all.sort_values("VolDay").head(20)[["VolWeek", "VolDay", "VolDayNext5", "VolDayNext10", "H"]]
+df_all.sort_values("VolWeek").tail(20)[["VolWeek", "VolDay", "VolDayNext5", "VolDayNext10", "H"]]
+df_all.sort_values("H").head(20)[["VolWeek", "VolDay", "VolDayNext5", "VolDayNext10", "H"]]
+
+df_all.assign(d=df_all.VolDayNext10-df_all.VolWeek).sort_values("d", ascending=True).head(20)[["VolWeek", "VolDay", "VolDayNext5", "VolDayNext10"]]
