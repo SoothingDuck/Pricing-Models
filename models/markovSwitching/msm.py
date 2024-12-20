@@ -100,7 +100,10 @@ for ticker in list(sp500.Symbol) + ["QQQ", "SPY"]:
         b, m0, gamma_kbar, sigma_week = fit_MSM(log_return_week, kbar)
         vol_week = predict_vol(log_return_week, kbar, b, m0, gamma_kbar, sigma_week)
         result_MSM_week.append((ticker, vol_week*np.sqrt(52), hist_dat_week.shape[0]))
-pd.DataFrame(result_MSM_week, columns=["Ticker", "VolWeek", "NbWeek"]).to_csv("result_MSM_week.csv")
+
+pd.DataFrame(result_MSM_week, columns=["Ticker", "VolWeek", "NbWeek"]). \
+    set_index("Ticker"). \
+    to_csv("result_MSM_week.csv")
 
 
 result_MSM_day = []
@@ -115,7 +118,10 @@ for ticker in list(sp500.Symbol) + ["QQQ", "SPY"]:
         b, m0, gamma_kbar, sigma_day = fit_MSM(log_return_day, kbar)
         vol_day = predict_vol(log_return_day, kbar, b, m0, gamma_kbar, sigma_day, h = 5)
         result_MSM_day.append((ticker, vol_day*np.sqrt(252), hist_dat_day.shape[0]))
-pd.DataFrame(result_MSM_day, columns=["Ticker", "VolDay", "NbDay"]).to_csv("result_MSM_day.csv")
+
+pd.DataFrame(result_MSM_day, columns=["Ticker", "VolDay", "NbDay"]). \
+    set_index("Ticker"). \
+    to_csv("result_MSM_day.csv")
 
 # Hurst
 from hurst import compute_Hc, random_walk
@@ -133,14 +139,13 @@ for ticker in list(sp500.Symbol) + ["QQQ", "SPY"]:
             simplified=True
         )
         result_hurst.append((ticker, H, c))
+pd.DataFrame(result_hurst, columns=["Ticker", "H", "c"]). \
+    set_index("Ticker"). \
+    to_csv("result_hurst.csv")
 
 # Synth
-df_MSM = pd.DataFrame(result_MSM, columns=["Ticker", "VolWeek", "VolDay", "NbWeek"]).set_index("Ticker")
-df_hurst = pd.DataFrame(result_hurst, columns=["Ticker", "Hurst", "c"]).set_index("Ticker")
+df_MSM_week = pd.read_csv("result_MSM_week.csv")
+df_MSM_day = pd.read_csv("result_MSM_day.csv")
+df_hurst = pd.read_csv("result_hurst.csv")
 
-df_MSM.join(df_hurst).sort_values("Volatility", ascending=False).to_csv("df_MSM_hurst.csv")
-df_MSM.join(df_hurst).sort_values("Volatility", ascending=False).head(20)
-df_MSM.join(df_hurst).sort_values("Volatility", ascending=False).tail(20)
 
-# After
-df_vol = pd.read_csv("df_MSM_hurst.csv")
