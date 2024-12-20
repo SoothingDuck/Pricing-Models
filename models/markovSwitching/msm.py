@@ -106,7 +106,7 @@ pd.DataFrame(result_MSM_week, columns=["Ticker", "VolWeek", "NbWeek"]).to_csv("r
 result_MSM_day = []
 for ticker in list(sp500.Symbol) + ["QQQ", "SPY"]:
     dat = yf.Ticker(ticker)
-    hist_dat_day = dat.history(period="1y", interval="1d", auto_adjust=False, actions=False)
+    hist_dat_day = dat.history(period="2y", interval="1d", auto_adjust=False, actions=False)
     if hist_dat_day.shape[0] > 250:
         print(f"{ticker} day")
         # Day
@@ -115,6 +115,7 @@ for ticker in list(sp500.Symbol) + ["QQQ", "SPY"]:
         b, m0, gamma_kbar, sigma_day = fit_MSM(log_return_day, kbar)
         vol_day = predict_vol(log_return_day, kbar, b, m0, gamma_kbar, sigma_day, h = 5)
         result_MSM_day.append((ticker, vol_day*np.sqrt(252), hist_dat_day.shape[0]))
+pd.DataFrame(result_MSM_day, columns=["Ticker", "VolDay", "NbDay"]).to_csv("result_MSM_day.csv")
 
 # Hurst
 from hurst import compute_Hc, random_walk
