@@ -121,6 +121,6 @@ for ticker in list(sp500.Symbol) + ["QQQ", "SPY"]:
 df_MSM = pd.DataFrame(result_MSM, columns=["Ticker", "Volatility", "NbWeek"]).set_index("Ticker")
 df_hurst = pd.DataFrame(result_hurst, columns=["Ticker", "Hurst", "c"]).set_index("Ticker")
 
+df_MSM.join(df_hurst).sort_values("Volatility", ascending=False).to_csv("df_MSM_hurst.csv")
 df_MSM.join(df_hurst).sort_values("Volatility", ascending=False).head(20)
-
 df_MSM.join(df_hurst).sort_values("Volatility", ascending=False).tail(20)
