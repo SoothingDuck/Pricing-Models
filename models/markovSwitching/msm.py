@@ -91,14 +91,21 @@ sp500 = get_tickers_slickcharts("sp500")
 result_MSM = []
 for ticker in list(sp500.Symbol) + ["QQQ", "SPY"]:
     dat = yf.Ticker(ticker)
-    hist_dat = dat.history(period="2y", interval="1wk", auto_adjust=False, actions=False)
-    if hist_dat.shape[0] > 100:
+    hist_dat_week = dat.history(period="2y", interval="1wk", auto_adjust=False, actions=False)
+    hist_dat_day = dat.history(period="2y", interval="1d", auto_adjust=False, actions=False)
+    if hist_dat_week.shape[0] > 100:
         print(ticker)
-        log_return = np.array(np.log(hist_dat["Adj Close"]).diff().dropna()).reshape(-1, 1)
+        # Week
+        log_return_week = np.array(np.log(hist_dat_week["Adj Close"]).diff().dropna()).reshape(-1, 1)
         kbar = 7
-        b, m0, gamma_kbar, sigma = fit_MSM(log_return, kbar)
-        vol = predict_vol(log_return, kbar, b, m0, gamma_kbar, sigma)
-        result_MSM.append((ticker, vol*np.sqrt(52), hist_dat.shape[0]))
+        b, m0, gamma_kbar, sigma_week = fit_MSM(log_return_week, kbar)
+        vol_week = predict_vol(log_return_week, kbar, b, m0, gamma_kbar, sigma_week)
+        # Day
+        log_return_day = np.array(np.log(hist_dat_day["Adj Close"]).diff().dropna()).reshape(-1, 1)
+        kbar = 7
+        b, m0, gamma_kbar, sigma_day = fit_MSM(log_return_day, kbar)
+        vol_day = predict_vol(log_return_day, kbar, b, m0, gamma_kbar, sigma_day, h = 5)
+        result_MSM.append((ticker, vol_week*np.sqrt(52), vol_day*np.sqrt(252), hist_dat_week.shape[0]))
 
 # Hurst
 from hurst import compute_Hc, random_walk
@@ -118,9 +125,12 @@ for ticker in list(sp500.Symbol) + ["QQQ", "SPY"]:
         result_hurst.append((ticker, H, c))
 
 # Synth
-df_MSM = pd.DataFrame(result_MSM, columns=["Ticker", "Volatility", "NbWeek"]).set_index("Ticker")
+df_MSM = pd.DataFrame(result_MSM, columns=["Ticker", "VolWeek", "VolDay", "NbWeek"]).set_index("Ticker")
 df_hurst = pd.DataFrame(result_hurst, columns=["Ticker", "Hurst", "c"]).set_index("Ticker")
 
 df_MSM.join(df_hurst).sort_values("Volatility", ascending=False).to_csv("df_MSM_hurst.csv")
 df_MSM.join(df_hurst).sort_values("Volatility", ascending=False).head(20)
 df_MSM.join(df_hurst).sort_values("Volatility", ascending=False).tail(20)
+
+# After
+df_vol = pd.read_csv("df_MSM_hurst.csv")
