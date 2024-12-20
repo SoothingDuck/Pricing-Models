@@ -88,24 +88,33 @@ import yfinance as yf
 sp500 = get_tickers_slickcharts("sp500")
 
 # MSM
-result_MSM = []
+result_MSM_week = []
 for ticker in list(sp500.Symbol) + ["QQQ", "SPY"]:
     dat = yf.Ticker(ticker)
     hist_dat_week = dat.history(period="2y", interval="1wk", auto_adjust=False, actions=False)
-    hist_dat_day = dat.history(period="2y", interval="1d", auto_adjust=False, actions=False)
     if hist_dat_week.shape[0] > 100:
-        print(ticker)
+        print(f"{ticker} week")
         # Week
         log_return_week = np.array(np.log(hist_dat_week["Adj Close"]).diff().dropna()).reshape(-1, 1)
         kbar = 7
         b, m0, gamma_kbar, sigma_week = fit_MSM(log_return_week, kbar)
         vol_week = predict_vol(log_return_week, kbar, b, m0, gamma_kbar, sigma_week)
+        result_MSM_week.append((ticker, vol_week*np.sqrt(52), hist_dat_week.shape[0]))
+pd.DataFrame(result_MSM_week, columns=["Ticker", "VolWeek", "NbWeek"]).to_csv("result_MSM_week.csv")
+
+
+result_MSM_day = []
+for ticker in list(sp500.Symbol) + ["QQQ", "SPY"]:
+    dat = yf.Ticker(ticker)
+    hist_dat_day = dat.history(period="1y", interval="1d", auto_adjust=False, actions=False)
+    if hist_dat_day.shape[0] > 250:
+        print(f"{ticker} day")
         # Day
         log_return_day = np.array(np.log(hist_dat_day["Adj Close"]).diff().dropna()).reshape(-1, 1)
-        kbar = 7
+        kbar = 5
         b, m0, gamma_kbar, sigma_day = fit_MSM(log_return_day, kbar)
         vol_day = predict_vol(log_return_day, kbar, b, m0, gamma_kbar, sigma_day, h = 5)
-        result_MSM.append((ticker, vol_week*np.sqrt(52), vol_day*np.sqrt(252), hist_dat_week.shape[0]))
+        result_MSM_day.append((ticker, vol_day*np.sqrt(252), hist_dat_day.shape[0]))
 
 # Hurst
 from hurst import compute_Hc, random_walk
