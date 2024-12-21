@@ -96,7 +96,7 @@ for ticker in list(sp500.Symbol) + ["QQQ", "SPY"]:
         print(f"{ticker} week")
         # Week
         log_return_week = np.array(np.log(hist_dat_week["Adj Close"]).diff().dropna()).reshape(-1, 1)
-        kbar = 8
+        kbar = 7
         b, m0, gamma_kbar, sigma_week = fit_MSM(log_return_week, kbar)
         vol_week = predict_vol(log_return_week, kbar, b, m0, gamma_kbar, sigma_week)
         vol_next_week = predict_vol(log_return_week, kbar, b, m0, gamma_kbar, sigma_week, h = 1)
