@@ -162,8 +162,11 @@ df_all = df_MSM_week. \
     join(df_MSM_day). \
     join(df_hurst)
 
-df_all.sort_values("VolDay").head(20)[["VolWeek", "VolDay", "VolDayNext5", "VolDayNext10", "H"]]
-df_all.sort_values("VolWeek").tail(20)[["VolWeek", "VolDay", "VolDayNext5", "VolDayNext10", "H"]]
-df_all.sort_values("H").head(20)[["VolWeek", "VolDay", "VolDayNext5", "VolDayNext10", "H"]]
+df_all
 
-df_all.assign(d=df_all.VolDayNext10-df_all.VolWeek).sort_values("d", ascending=True).head(20)[["VolWeek", "VolDay", "VolDayNext5", "VolDayNext10"]]
+# Bullish : High Vol, High H
+df_all.sort_values("VolWeek", ascending=False).head(20)[["VolWeek", "VolNextWeek", "VolNext2Week", "H"]]  # PLTR + NVDA + VST
+
+# Neutral : Low Vol, How H
+df_all.sort_values("VolWeek", ascending=True).head(20)[["VolWeek", "VolNextWeek", "VolNext2Week", "H"]]  # PLTR + NVDA + VST
+
