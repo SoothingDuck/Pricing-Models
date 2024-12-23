@@ -165,8 +165,7 @@ df_all = df_MSM_week. \
 df_all
 
 # Bullish : High Vol, High H
-df_all.sort_values("VolWeek", ascending=False).head(20)[["VolWeek", "VolNextWeek", "VolNext2Week", "H"]]  # PLTR + NVDA + VST
+df_all.sort_values("H", ascending=False).head(20)[["VolWeek", "VolNextWeek", "VolNext2Week", "H"]]  # PLTR + NVDA + VST
 
 # Neutral : Low Vol, How H
-df_all.sort_values("VolWeek", ascending=True).head(20)[["VolWeek", "VolNextWeek", "VolNext2Week", "H"]]  # PLTR + NVDA + VST
-
+df_all.sort_values("H", ascending=True).head(20)[["VolWeek", "VolNextWeek", "VolNext2Week", "H"]]  # PLTR + NVDA + VST
